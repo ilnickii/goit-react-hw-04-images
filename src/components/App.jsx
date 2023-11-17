@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useEffect, useState } from 'react';
 import CSS from './App.module.css';
 import { SearchBar } from './SearchBar/SearchBar';
 import { ImageGallery } from './ImageGallery/ImageGallery';
@@ -6,64 +6,55 @@ import { Button } from './Button/Button';
 import { fetchImages } from 'api';
 import { Loader } from './Loader';
 
-export class App extends Component {
-  state = {
-    query: '',
-    images: [],
-    page: 1,
-    isLoading: false,
-    error: false,
-    totalHits: 0,
-  };
+export const App = () => {
+    const [query, setQuery] = useState('');
+    const [images, setImages] = useState([]);
+    const [page, setPage] = useState(1);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(false);
+    const [totalHits, setTotalHits] = useState(0);
 
-  componentDidUpdate(props, prevState) {
-    if (this.state.query !== prevState.query || this.state.page !== prevState.page) {
-      this.loadImages();
-    }
-  }
+    const handleSearchSubmit = (query) => {
+        setQuery(query);
+        setImages([]);
+        setPage(1);
+        setIsLoading(true);
+        setError(false);
+    };
 
-  handleSearchSubmit = (query) => {
-    this.setState({ query, images: [], page: 1, isLoading: true, error: null });
-  };
+    useEffect(() => {
+        if (query.trim() === '') return;
 
-  loadImages = async () => {
-    const { query, page } = this.state;
+        const loadImages = async () => {
 
-    try {
-      this.setState({ isLoading: true })
-      const data = await fetchImages(query, page);
-      if (data.hits.length === 0) {
-        return;
-      }
+            try {
+                setIsLoading(true)
+                const data = await fetchImages(query, page);
+                if (data.hits.length === 0) {
+                    return;
+                };
 
-      this.setState((prevState) => ({
-        images: [...prevState.images, ...data.hits],
-        totalHits: data.totalHits,
-      }));
-    } catch (error) {
-      this.setState({ error: true });
-      console.error('Error loading images:', error);
-    } finally {
-      this.setState({ isLoading: false });
-    }
-  };
+                setImages(prevImages => [...prevImages, ...data.hits]);
+                setTotalHits(data.totalHits);
+            } catch (error) {
+                setError(true);
+                console.error('Error loading images:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
-  loadMore = () => {
-    this.setState(prevState => {
-      return {
-        page: prevState.page + 1,
-      };
-    });
-  };
+        loadImages();
 
+    }, [query, page]);
 
-
-  render() {
-    const { images, error, isLoading } = this.state;
+    const loadMore = () => {
+        setPage(prevPage => prevPage + 1);
+    };
 
     return (
       <div className={CSS.App}>
-        <SearchBar onSubmit={this.handleSearchSubmit} />
+        <SearchBar onSubmit={handleSearchSubmit} />
         {error && (
           <b>Oops! Something went wrong! Please try reloading this page!</b>
         )}
@@ -71,12 +62,10 @@ export class App extends Component {
         {isLoading && <Loader />}
         {images.length > 0 &&
           !isLoading &&
-           this.state.page < Math.ceil(this.state.totalHits / 12) &&
-          (<Button onClick={this.loadMore} />
+           page < Math.ceil(totalHits / 12) &&
+          (<Button onClick={loadMore} />
           )}
         
       </div>
     );
-  }
-}
-
+};

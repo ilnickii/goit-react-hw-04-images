@@ -1,35 +1,22 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import { ImageModal } from '../Modal/Modal'
 import CSS from './ImageGalleryItem.module.css';
 
 
-export class ImageGalleryItem extends Component {
-    state = {
-        isModalOpen: false,
+export const ImageGalleryItem = ({ image }) => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const openModal = () => {
+        setIsModalOpen(true)
     };
 
-    openModal = () => {
-        this.setState(prevState => ({
-            isModalOpen: !prevState.isModalOpen,
-        }));
-    };
-    
-  
+    const closeModal = () => {
+        setIsModalOpen(false)
+    }
 
-    closeModal = () => {
-      this.setState(prevState => ({
-            isModalOpen: !prevState.isModalOpen,
-        }));
-    };
-
-
-    render() {
-        const { isModalOpen } = this.state;
-        const { image } = this.props;
-
-        return (
+      return (
             <div>
-                <li className={CSS.ImageGalleryItem} onClick={this.openModal}>
+                <li className={CSS.ImageGalleryItem} onClick={openModal}>
                     <img
                         src={image.webformatURL}
                         alt={image.user}
@@ -39,32 +26,9 @@ export class ImageGalleryItem extends Component {
                 </li>
                 <ImageModal
                     isOpen={isModalOpen}
-                    onClose={this.closeModal}
+                    onClose={closeModal}
                     image={image}
                 />
             </div>
         )
-    }
-}
-
-
-
-
-
-
-
-
-
-// export const ImageGalleryItem = ({image}) => {
-//     return (
-//         <li className={CSS.ImageGalleryItem}>
-//            <img
-//               src={image.webformatURL}
-//               alt={image.user}
-//                 className={CSS.ImageGalleryItemImage}
-                
-//             />
-//             <ImageModal/>
-//     </li>
-//     )
-// }
+};
